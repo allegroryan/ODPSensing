@@ -1,14 +1,16 @@
-#include "Enes100Simulation.h"
-#include "TankSimulation.h"
+//#include "Enes100.h"
+//#include "TankSimulation.h"
 #include <math.h>
+#include <Enes100.h>
+//Un Comment obstacle dodging
 
 /*
  * Note: This sketch contains function defintions that may be useful for writing your navigation code. 
  * You are responsible for writing the code to complete the functions and testing it out on the simulator. 
  * If you're looking for an example of using the simulator libraries, go to File->Examples->navigation_example
- * ENES100.location.y
- * ENES100.location.x
- * ENES100.location.theta
+ * Enes100.location.y
+ * Enes100.location.x
+ * Enes100.location.theta
  */
 
  /*
@@ -26,26 +28,51 @@
    * Phase 2-
    *  - Sensors: Front[0(Left),2(Right)]
    *             Side[10(Left),4(Right)]
-   *             Enes100Simulation.readDistanceSensor(int SensorNumber);
+   *             Enes100.readDistanceSensor(int SensorNumber);
    *    Drives down center and dodges obstacles
    *    Obstacle size: 0.2 x 0.5m
    */
 
    
 boolean phase1 = true;
-
+//Sonar Values Start:
+int trigPin=10;
+int echoPin1=2; //Left
+int echoPin2=5; //Front Left
+int echoPin3=4; //Front Right
+int echoPin4=6; //Right
+long duration1;
+long duration2;
+long duration3;
+long duration4;
+int distance1;
+int distance2;
+int distance3;
+int distance4;
+//Sonar Values End
 
 void setup() {
+  initialize(); //Sets up motors
+  
   Enes100.begin("ODP", BLACK_BOX, 5, 9, 8);
   Serial.begin(9600);
   Enes100.println("-=xxxXXX[Operation Dark Phoenix]XXXxx=- IN DIS BITS:");
   
   /*
-  Enes100Simulation.println("");
-  Enes100Simulation.println("__________________");
-  Enes100Simulation.println("FaceDir Command:");
+  Enes100.println("");
+  Enes100.println("__________________");
+  Enes100.println("FaceDir Command:");
   faceDir(0);
   */
+  Enes100.println("Clockwise");
+  clockwise(255);
+  delay(10000);
+  Enes100.println("CounterClockwise");
+  counterClockwise(255);
+  delay(10000);
+  Enes100.println("Forward");
+  driveForward(255);
+  delay(10000);
   phaseOne();
   phaseTwo();
   
@@ -60,11 +87,11 @@ void loop() {
 
 //Phase 1 - Center Self
 void phaseOne(){
-  Enes100Simulation.println("-=PHASE 1=-"); 
-  if(ENES100.location.y > 1){
+  Enes100.println("-=PHASE 1=-"); 
+  if(Enes100.location.y > 1){
     driveDestination(false, 255, 0.35, 1);
   }
-  else if(ENES100.location.y < 1){
+  else if(Enes100.location.y < 1){
     driveDestination(false, 255, 0.35, 1);
   }
   faceDir(0);
@@ -72,108 +99,121 @@ void phaseOne(){
 }
 
 void phaseTwo(){
-  Enes100Simulation.println("-=PHASE 2=-"); 
+  Enes100.println("-=PHASE 2=-"); 
   driveDestination(true, 255, 3, 1);
 }
 
 
 void dodgeObstacle(){
-  ENES100.updateLocation();
+  updateNavigation();
   boolean drivePast = false;
-  float sideDistance = Enes100Simulation.readDistanceSensor(4);
-  double startPos [] = {ENES100.location.x, ENES100.location.y, ENES100.location.theta};
-  Enes100Simulation.println("DODGE OBSTACLE: 1A");
-  Enes100Simulation.println("DODGE OBSTACLE: DRIVE TEST -------");
-  ENES100.updateLocation();
-  driveDestination(false, 200, (ENES100.location.x + 0.3), (ENES100.location.y + 0.6));
-  ENES100.updateLocation();
-  Enes100Simulation.println("DODGE OBSTACLE: 2-------------------");
+  float sideDistance = sonarReadDistanceSensor(4);
+  double startPos [] = {Enes100.location.x, Enes100.location.y, Enes100.location.theta};
+  Enes100.println("DODGE OBSTACLE: 1A");
+  Enes100.println("DODGE OBSTACLE: DRIVE TEST -------");
+  updateNavigation();
+  driveDestination(false, 200, (Enes100.location.x + 0.3), (Enes100.location.y + 0.6));
+  updateNavigation();
+  Enes100.println("DODGE OBSTACLE: 2-------------------");
   faceDir(0);
-  //driveDestination(false, 100, ENES100.location.x+ 0.2, ENES100.location.y);
-  Enes100Simulation.println("DODGE OBSTACLE: 2 - Face Right-------------------");
+  //driveDestination(false, 100, Enes100.location.x+ 0.2, Enes100.location.y);
+  Enes100.println("DODGE OBSTACLE: 2 - Face Right-------------------");
   while(!drivePast){
     driveForward(100);
-    if(Enes100Simulation.readDistanceSensor(4) <= 0.3){
+    if(sonarReadDistanceSensor(4) <= 30){
       drivePast = true;
     }
   }
   ("DODGE OBSTACLE: 3 DRIVEN PAST, NEXT!-------------------");
-  ENES100.updateLocation();
-  driveDestination(false, 200, (ENES100.location.x + 0.2), (ENES100.location.y));
-  ENES100.updateLocation();
-  Enes100Simulation.println("DODGE OBSTACLE: 3-------------------");
-  driveDestination(false, 200, (ENES100.location.x + 0.35), startPos[1]);
-  ENES100.updateLocation();
+  updateNavigation();
+  driveDestination(false, 200, (Enes100.location.x + 0.2), (Enes100.location.y));
+  updateNavigation();
+  Enes100.println("DODGE OBSTACLE: 3-------------------");
+  driveDestination(false, 200, (Enes100.location.x + 0.35), startPos[1]);
+  updateNavigation();
   faceDir(0);
 }
 
 
 
+void initialize(){
+  //Motors Start:
+  pinMode(12, OUTPUT); 
+  pinMode(13, OUTPUT); 
+  //Motors End
 
+  //Sonar Start:
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin1, INPUT);
+  pinMode(echoPin2, INPUT);
+  pinMode(echoPin3, INPUT);
+  pinMode(echoPin4, INPUT);
+  //Sonar End
+}
 void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){ //maybe add boolean for gradual speed
   int debugTicker = 0;
   double debug1 = 0;
   double debug2 = 2;
-  ENES100.updateLocation();
+  updateNavigation();
   double osvSpeed = defaultOsvSpeed;
-  double startPos [] = {ENES100.location.x, ENES100.location.y, ENES100.location.theta};
-  double tAdjacent = x - ENES100.location.x;
-  double tOpposite = y - ENES100.location.y;
+  double startPos [] = {Enes100.location.x, Enes100.location.y, Enes100.location.theta};
+  double tAdjacent = x - Enes100.location.x;
+  double tOpposite = y - Enes100.location.y;
   float angleChange = atan2(tOpposite, tAdjacent) - startPos[2];
-  Enes100Simulation.print("arcTan( tOpposite: ");
-  Enes100Simulation.print(tOpposite);
-  Enes100Simulation.print("/ tAdjacent:");
-  Enes100Simulation.print(tAdjacent);
-  Enes100Simulation.print(") = ");
-  Enes100Simulation.println(angleChange);
+  Enes100.print("arcTan( tOpposite: ");
+  Enes100.print(tOpposite);
+  Enes100.print("/ tAdjacent:");
+  Enes100.print(tAdjacent);
+  Enes100.print(") = ");
+  Enes100.println(angleChange);
   float distance = sqrt(pow(tAdjacent,2) + pow(tOpposite,2));
   float distanceTraveled = 0;
   float travelPercent = 0;
-  Enes100Simulation.print("Location: ");
-  Enes100Simulation.print("(");
-  Enes100Simulation.print(ENES100.location.x);
-  Enes100Simulation.print(", ");
-  Enes100Simulation.print(ENES100.location.y);
-  Enes100Simulation.println(")");
-  Enes100Simulation.print("Destination: ");
-  Enes100Simulation.print("(");
-  Enes100Simulation.print(x);
-  Enes100Simulation.print(", ");
-  Enes100Simulation.print(y);
-  Enes100Simulation.println(")");
-  Enes100Simulation.print("Angle Change: ");
-  Enes100Simulation.println(angleChange);
-  Enes100Simulation.print("Distance: ");
-  Enes100Simulation.println(distance);
-  Enes100Simulation.print("tOpposite: ");
-  Enes100Simulation.println(tOpposite);
-  Enes100Simulation.print("tAdjacent: ");
-  Enes100Simulation.println(tAdjacent);
-  Enes100Simulation.println(angleChange);
-  Enes100Simulation.println(angleChange);
-  Enes100Simulation.println(angleChange);
-  faceDir(ENES100.location.theta + angleChange);
+  Enes100.print("Location: ");
+  Enes100.print("(");
+  Enes100.print(Enes100.location.x);
+  Enes100.print(", ");
+  Enes100.print(Enes100.location.y);
+  Enes100.println(")");
+  Enes100.print("Destination: ");
+  Enes100.print("(");
+  Enes100.print(x);
+  Enes100.print(", ");
+  Enes100.print(y);
+  Enes100.println(")");
+  Enes100.print("Angle Change: ");
+  Enes100.println(angleChange);
+  Enes100.print("Distance: ");
+  Enes100.println(distance);
+  Enes100.print("tOpposite: ");
+  Enes100.println(tOpposite);
+  Enes100.print("tAdjacent: ");
+  Enes100.println(tAdjacent);
+  Enes100.println(angleChange);
+  Enes100.println(angleChange);
+  Enes100.println(angleChange);
+  faceDir(Enes100.location.theta + angleChange);
   while(distanceTraveled < distance){
     if(sensing == true){
-      ENES100.updateLocation();
-      Enes100Simulation.print("Sensor[0]: ");
-      Enes100Simulation.println(Enes100Simulation.readDistanceSensor(0));
-      Enes100Simulation.print("Sensor[2]: ");
-      Enes100Simulation.println(Enes100Simulation.readDistanceSensor(2));
-      if(Enes100Simulation.readDistanceSensor(0) <= 0.4 || Enes100Simulation.readDistanceSensor(2) <= 0.4){
+      updateNavigation();
+      Enes100.print("Sensor[0]: ");
+      Enes100.println(sonarReadDistanceSensor(0));
+      Enes100.print("Sensor[2]: ");
+      Enes100.println(sonarReadDistanceSensor(2));
+      if(sonarReadDistanceSensor(0) <= 40 || sonarReadDistanceSensor(2) <= 40){
         if(debugTicker % 60 == 0){
-          debug1 = Enes100Simulation.readDistanceSensor(0);
+          debug1 = sonarReadDistanceSensor(0);
         }
         else if(debugTicker % 30 == 0){
-          debug2 = Enes100Simulation.readDistanceSensor(0);
+          debug2 = sonarReadDistanceSensor(0);
         }
         if(debug1 == debug2){
-          Enes100Simulation.println("!!!STUCK GLITCH!!!");
+          Enes100.println("!!!STUCK GLITCH!!!");
           dodgeObstacle();
         }
         osvSpeed = osvSpeed/1.5;
-        if(Enes100Simulation.readDistanceSensor(0) <= 0.245 || Enes100Simulation.readDistanceSensor(2) <= 0.245){
-          Enes100Simulation.println("-= DODGING OBSTACLE! =-");
+        if(sonarReadDistanceSensor(0) <= 24.5 || sonarReadDistanceSensor(2) <= 24.5){
+          Enes100.println("-= DODGING OBSTACLE! =-");
           dodgeObstacle();
         }
       }
@@ -181,12 +221,12 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
         osvSpeed = defaultOsvSpeed;
       }
     }
-    Enes100Simulation.print("Driving: ");
-    Enes100Simulation.print(distanceTraveled);
-    Enes100Simulation.print("/");
-    Enes100Simulation.println(distance);
-    ENES100.updateLocation();
-    distanceTraveled = sqrt(pow(floatDiff(startPos[0],ENES100.location.x),2) + pow(floatDiff(startPos[1],ENES100.location.y),2));
+    Enes100.print("Driving: ");
+    Enes100.print(distanceTraveled);
+    Enes100.print("/");
+    Enes100.println(distance);
+    updateNavigation();
+    distanceTraveled = sqrt(pow(floatDiff(startPos[0],Enes100.location.x),2) + pow(floatDiff(startPos[1],Enes100.location.y),2));
     travelPercent = distanceTraveled / distance;
     if(travelPercent <= .9){
       driveForward(osvSpeed);
@@ -199,10 +239,10 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
     }
   }
   driveForward(0);
-  Enes100Simulation.print(distance);
-  Enes100Simulation.print("/");
-  Enes100Simulation.println(distanceTraveled);
-  Enes100Simulation.println("STOP! - Driving");
+  Enes100.print(distance);
+  Enes100.print("/");
+  Enes100.println(distanceTraveled);
+  Enes100.println("STOP! - Driving");
 }
 
 
@@ -220,46 +260,46 @@ float floatDiff(float x, float y){ //float difference function
 }
 
 void faceDir(float dir){
-  ENES100.updateLocation();
+  updateNavigation();
   float rotateRad = rotateRadians(dir);
-  float rotateGoal = ENES100.location.theta + rotateRad;
-  float rotateStart = ENES100.location.theta;
-  float rotateProgress = ENES100.location.theta;
+  float rotateGoal = Enes100.location.theta + rotateRad;
+  float rotateStart = Enes100.location.theta;
+  float rotateProgress = Enes100.location.theta;
   float rotateDiff = floatDiff(rotateGoal,rotateProgress);
   float percentDone = (abs(abs(rotateStart) + rotateProgress) / rotateDiff);
-  Enes100Simulation.print("From ");
-  Enes100Simulation.print(ENES100.location.theta);
-  Enes100Simulation.print(" To ");
-  Enes100Simulation.println(rotateGoal);
-  Enes100Simulation.print("Radian Distance: ");
-  Enes100Simulation.println(rotateRad);
-  //Enes100Simulation.println("Radians to turn: " + rotateRad);
+  Enes100.print("From ");
+  Enes100.print(Enes100.location.theta);
+  Enes100.print(" To ");
+  Enes100.println(rotateGoal);
+  Enes100.print("Radian Distance: ");
+  Enes100.println(rotateRad);
+  //Enes100.println("Radians to turn: " + rotateRad);
   if(rotateDiff <= 0.05){
     //nothing
-    Enes100Simulation.println("NOT ROTATING, < 0.05");
+    Enes100.println("NOT ROTATING, < 0.05");
   }
   else if(rotateRad > 0){
     //rotat counterClockwise
     while(rotateProgress < rotateGoal){
-      ENES100.updateLocation();
+      updateNavigation();
       if(rotateGoal > PI){
-        if(ENES100.location.theta >= 0){
-          rotateProgress = ENES100.location.theta;
+        if(Enes100.location.theta >= 0){
+          rotateProgress = Enes100.location.theta;
         }
         else{
-          rotateProgress = PI + floatDiff(ENES100.location.theta, -PI);
+          rotateProgress = PI + floatDiff(Enes100.location.theta, -PI);
         }
       }
       else{
-        rotateProgress = ENES100.location.theta;
+        rotateProgress = Enes100.location.theta;
       }
-      Enes100Simulation.print("Rotation Progress: "); 
-      Enes100Simulation.print(rotateProgress); 
-      Enes100Simulation.print("/");
-      Enes100Simulation.println(rotateGoal);
-      Enes100Simulation.print("Percent: "); //Artificial percent for speed
+      Enes100.print("Rotation Progress: "); 
+      Enes100.print(rotateProgress); 
+      Enes100.print("/");
+      Enes100.println(rotateGoal);
+      Enes100.print("Percent: "); //Artificial percent for speed
       percentDone = (floatDiff(rotateProgress, rotateStart) / rotateDiff);
-      Enes100Simulation.println(percentDone);
+      Enes100.println(percentDone);
       if(percentDone >= 0.99){
         break;
       }
@@ -284,31 +324,31 @@ void faceDir(float dir){
         counterClockwise(40);
       }
     }
-    Enes100Simulation.println("STOP! - turning");
+    Enes100.println("STOP! - turning");
     counterClockwise(0);
   }
   else if(rotateRad < 0){ //CLOCKWISE ROTATION
     //rotate clockwise
     while(rotateProgress > rotateGoal){
-      ENES100.updateLocation();
+      updateNavigation();
       if(rotateGoal < -PI){
-        if(ENES100.location.theta <= 0){
-          rotateProgress = ENES100.location.theta;
+        if(Enes100.location.theta <= 0){
+          rotateProgress = Enes100.location.theta;
         }
         else{
-          rotateProgress = -PI - floatDiff(ENES100.location.theta, PI);
+          rotateProgress = -PI - floatDiff(Enes100.location.theta, PI);
         }
       }
       else{
-        rotateProgress = ENES100.location.theta;
+        rotateProgress = Enes100.location.theta;
       }
-      Enes100Simulation.print("Rotation Progress: "); 
-      Enes100Simulation.print(rotateProgress); 
-      Enes100Simulation.print("/");
-      Enes100Simulation.println(rotateGoal);
-      Enes100Simulation.print("Percent: "); //Artificial percent for speed
+      Enes100.print("Rotation Progress: "); 
+      Enes100.print(rotateProgress); 
+      Enes100.print("/");
+      Enes100.println(rotateGoal);
+      Enes100.print("Percent: "); //Artificial percent for speed
       percentDone = (floatDiff(rotateProgress, rotateStart) / rotateDiff);
-      Enes100Simulation.println(percentDone);
+      Enes100.println(percentDone);
       if(percentDone >= 0.99){
         break;
       }
@@ -333,16 +373,16 @@ void faceDir(float dir){
         clockwise(5);
       }
     }
-    Enes100Simulation.print("STOP! - Rotating");
+    Enes100.print("STOP! - Rotating");
     clockwise(0);
   }
   else{
-    Enes100Simulation.print("_____NOT ROTATING!_____");
+    Enes100.print("_____NOT ROTATING!_____");
   }
 }
 
 float rotateRadians(float dir){
-  if(dir == ENES100.location.theta){
+  if(dir == Enes100.location.theta){
     return 0;
   }
   boolean Q1 [] = {0,0,0}; // [overall, osv.theta, destination]
@@ -351,19 +391,19 @@ float rotateRadians(float dir){
   boolean Q4 [] = {0,0,0}; // [overall, osv.theta, destination]
 
   //SETS QUADRANT FOR THE OSV THETA
-  if(ENES100.location.theta >= 0 && ENES100.location.theta <= PI/2){
+  if(Enes100.location.theta >= 0 && Enes100.location.theta <= PI/2){
     Q1[0] = true;
     Q1[1] = true;
   }
-  else if(ENES100.location.theta <= PI && ENES100.location.theta >= PI/2){
+  else if(Enes100.location.theta <= PI && Enes100.location.theta >= PI/2){
     Q2[0] = true;
     Q2[1] = true;
   }
-  else if(ENES100.location.theta >= -PI && ENES100.location.theta <= -PI/2){
+  else if(Enes100.location.theta >= -PI && Enes100.location.theta <= -PI/2){
     Q3[0] = true;
     Q3[1] = true;
   }
-  else if(ENES100.location.theta > -PI/2 && ENES100.location.theta < 0){
+  else if(Enes100.location.theta > -PI/2 && Enes100.location.theta < 0){
     Q4[0] = true;
     Q4[1] = true;
   }
@@ -386,155 +426,244 @@ float rotateRadians(float dir){
     Q4[2] = true;
   }
 
-  Enes100Simulation.print("Q1: ");
-  Enes100Simulation.print(Q1[0]);
-  Enes100Simulation.print(Q1[1]);
-  Enes100Simulation.println(Q1[2]);
+  Enes100.print("Q1: ");
+  Enes100.print(Q1[0]);
+  Enes100.print(Q1[1]);
+  Enes100.println(Q1[2]);
   
-  Enes100Simulation.print("Q2: ");
-  Enes100Simulation.print(Q2[0]);
-  Enes100Simulation.print(Q2[1]);
-  Enes100Simulation.println(Q2[2]);
+  Enes100.print("Q2: ");
+  Enes100.print(Q2[0]);
+  Enes100.print(Q2[1]);
+  Enes100.println(Q2[2]);
   
-  Enes100Simulation.print("Q3: ");
-  Enes100Simulation.print(Q3[0]);
-  Enes100Simulation.print(Q3[1]);
-  Enes100Simulation.println(Q3[2]);
+  Enes100.print("Q3: ");
+  Enes100.print(Q3[0]);
+  Enes100.print(Q3[1]);
+  Enes100.println(Q3[2]);
   
-  Enes100Simulation.print("Q4: ");
-  Enes100Simulation.print(Q4[0]);
-  Enes100Simulation.print(Q4[1]);
-  Enes100Simulation.println(Q4[2]);
+  Enes100.print("Q4: ");
+  Enes100.print(Q4[0]);
+  Enes100.print(Q4[1]);
+  Enes100.println(Q4[2]);
   
   //Q1
   if(Q1[1] && Q1[2]){
-    if(ENES100.location.theta >= dir){
-      return -(floatDiff(ENES100.location.theta,dir));
+    if(Enes100.location.theta >= dir){
+      return -(floatDiff(Enes100.location.theta,dir));
     }
     else{
-      return (floatDiff(ENES100.location.theta,dir));
+      return (floatDiff(Enes100.location.theta,dir));
     }
   }
   else if(Q1[0] && Q2[0]){
     if(Q1[1] && Q2[2]){
-      return (floatDiff(ENES100.location.theta,dir));
+      return (floatDiff(Enes100.location.theta,dir));
     }
     else{ // Q1[2] && Q2[1]
-      return -(floatDiff(ENES100.location.theta,dir));
+      return -(floatDiff(Enes100.location.theta,dir));
     }
   }
   else if(Q1[0] && Q3[0]){
     if(Q1[1] && Q3[2]){
-      if(floatDiff(ENES100.location.theta,dir) <= PI){
-        return -(floatDiff(ENES100.location.theta,dir));
+      if(floatDiff(Enes100.location.theta,dir) <= PI){
+        return -(floatDiff(Enes100.location.theta,dir));
       }
       else{ // rotate 
-        return ((PI * 2) - floatDiff(ENES100.location.theta,dir));
+        return ((PI * 2) - floatDiff(Enes100.location.theta,dir));
       }
     }
     else{ //Q1[2] && Q3[1]
-      if(floatDiff(ENES100.location.theta,dir) <= PI){
-        return (floatDiff(ENES100.location.theta,dir));
+      if(floatDiff(Enes100.location.theta,dir) <= PI){
+        return (floatDiff(Enes100.location.theta,dir));
       }
       else{
-        return -(floatDiff(ENES100.location.theta,dir));
+        return -(floatDiff(Enes100.location.theta,dir));
       }
     }
   }
   else if(Q1[0] && Q4[0]){
     if(Q1[1] && Q4[2]){
-      return -(floatDiff(ENES100.location.theta,dir));
+      return -(floatDiff(Enes100.location.theta,dir));
     }
     else{ //Q1[2] && Q4[1]
-      return (floatDiff(ENES100.location.theta,dir));
+      return (floatDiff(Enes100.location.theta,dir));
     }
   }
   //Q2
   if(Q2[1] && Q2[2]){
-    if(ENES100.location.theta >= dir){
-      return -(floatDiff(ENES100.location.theta,dir));
+    if(Enes100.location.theta >= dir){
+      return -(floatDiff(Enes100.location.theta,dir));
     }
     else{ 
-      return (floatDiff(ENES100.location.theta,dir));
+      return (floatDiff(Enes100.location.theta,dir));
     }
   }
   else if(Q2[0] && Q3[0]){
     if(Q2[1] && Q3[2]){
-      return ((PI*2) - floatDiff(ENES100.location.theta,dir));
+      return ((PI*2) - floatDiff(Enes100.location.theta,dir));
     }
     else{ //Q2[2] && Q3[1]
-      return -((PI*2) - floatDiff(ENES100.location.theta,dir));
+      return -((PI*2) - floatDiff(Enes100.location.theta,dir));
     }
   }
   else if(Q2[0] && Q4[0]){
     if(Q2[1] && Q4[2]){
-      if(floatDiff(ENES100.location.theta,dir) <= PI){
-        return -(floatDiff(ENES100.location.theta,dir));
+      if(floatDiff(Enes100.location.theta,dir) <= PI){
+        return -(floatDiff(Enes100.location.theta,dir));
       }
       else{
-        return ((PI * 2) - floatDiff(ENES100.location.theta,dir));
+        return ((PI * 2) - floatDiff(Enes100.location.theta,dir));
       }
     }
     else{ //Q2[2] && Q4[1]
-      if(floatDiff(ENES100.location.theta,dir) <= PI){
-        return (floatDiff(ENES100.location.theta,dir));
+      if(floatDiff(Enes100.location.theta,dir) <= PI){
+        return (floatDiff(Enes100.location.theta,dir));
       }
       else{
-        return -((PI * 2) - floatDiff(ENES100.location.theta,dir));
+        return -((PI * 2) - floatDiff(Enes100.location.theta,dir));
       }
     }
   }
   //Q3 / Q4
   else if(Q3[1] && Q3[2]){
-    if(ENES100.location.theta <= dir){
-      return (floatDiff(ENES100.location.theta,dir));
+    if(Enes100.location.theta <= dir){
+      return (floatDiff(Enes100.location.theta,dir));
     }
     else{
-      return -(floatDiff(ENES100.location.theta,dir));
+      return -(floatDiff(Enes100.location.theta,dir));
     }
   }
   else if(Q3[0] && Q4[0]){
     if(Q3[1] && Q4[2]){
-      return (floatDiff(ENES100.location.theta,dir));
+      return (floatDiff(Enes100.location.theta,dir));
     }
     else{ //Q3[2] && Q4[1]
-      return -(floatDiff(ENES100.location.theta,dir));
+      return -(floatDiff(Enes100.location.theta,dir));
     }
   }
   else if(Q4[1] && Q4[2]){
-    if(ENES100.location.theta <= dir){
-      return (floatDiff(ENES100.location.theta,dir));
+    if(Enes100.location.theta <= dir){
+      return (floatDiff(Enes100.location.theta,dir));
     }
     else{
-      return -(floatDiff(ENES100.location.theta,dir));
+      return -(floatDiff(Enes100.location.theta,dir));
     }
   }
 }
 
 void clockwise(int wheelSpeed){
+  int goWheelSpeed = 255;
   //Turning RIGHT
   //Motor A forword @ full speed
   digitalWrite(12, LOW); //Establishes forward direction of Channel A
-  analogWrite(3, wheelSpeed);   //Spins the motor on Channel A at full speed
+  analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, LOW);  //Establishes backward direction of Channel B
-  analogWrite(11, wheelSpeed);    //Spins the motor on Channel B at full speed
+  analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
 void counterClockwise(int wheelSpeed){
+  int goWheelSpeed = 255;
   //Turning LEFT
   //Motor A forword @ full speed
   digitalWrite(12, HIGH); //Establishes forward direction of Channel A
-  analogWrite(3, wheelSpeed);   //Spins the motor on Channel A at full speed
+  analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
-  analogWrite(11, wheelSpeed);    //Spins the motor on Channel B at full speed
+  analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
 void driveForward(int wheelSpeed){
+  int goWheelSpeed = 255;
   //Forwards
   //Motor A forword @ full speed
   digitalWrite(12, HIGH); //Establishes forward direction of Channel A
-  analogWrite(3, wheelSpeed);   //Spins the motor on Channel A at full speed
+  analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
-  analogWrite(11, wheelSpeed);    //Spins the motor on Channel B at full speed
+  analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
+
+
+
+
+
+//sonarReadDistanceSensor(0)
+//SONAR FUNCTIONS
+int sonarReadDistanceSensor(int sonarNum){
+  updateNavigation();
+  if(sonarNum == 10){ // left
+    clearTrig();
+    duration1 = pulseIn(echoPin1, HIGH);
+    distance1 = duration1*0.034/2;
+    distance1 = map(distance1, 2, 74, 2, 100);
+    return distance1;
+  }
+  if(sonarNum == 0){ // front left
+    clearTrig();
+    duration2 = pulseIn(echoPin2, HIGH);
+    distance2 = duration2*0.034/2;
+    distance2 = map(distance2, 2, 74, 2, 100);
+    return distance2;
+  }
+  if(sonarNum == 2){ // front right
+    clearTrig();
+    duration3 = pulseIn(echoPin3, HIGH);
+    distance3 = duration3*0.034/2;
+    distance3 = map(distance3, 2, 74, 2, 100);
+    return distance3;
+  }
+  if(sonarNum == 4){ // right
+    clearTrig();
+    duration4 = pulseIn(echoPin4, HIGH);
+    distance4 = duration4*0.034/2;
+    distance4 = map(distance4, 2, 74, 2, 100);
+    return distance4;
+  }
+}
+void updateNavigation(){
+  sonarDistance(1);
+  sonarDistance(2);
+  sonarDistance(3);
+  sonarDistance(4);
+}
+void clearTrig(){
+  //Clears the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  //sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  }
+
+void sonarDistance(int sonarNum){
+    clearTrig();
+    if(sonarNum==1){
+    duration1 = pulseIn(echoPin1, HIGH);
+    distance1 = duration1*0.034/2;
+    distance1 = map(distance1, 2, 74, 2, 100);
+    Serial.print("Distance 1: ");
+    Serial.println(distance1);
+    }
+    if(sonarNum==2){
+    duration2 = pulseIn(echoPin2, HIGH);
+    distance2 = duration2*0.034/2;
+    distance2 = map(distance2, 2, 74, 2, 100);
+    Serial.print("Distance 2: ");
+    Serial.println(distance2);
+    }
+    if(sonarNum==3){
+    duration3 = pulseIn(echoPin3, HIGH);
+    distance3 = duration3*0.034/2;
+    distance3 = map(distance3, 2, 74, 2, 100);
+    Serial.print("Distance 3: ");
+    Serial.println(distance3);
+    }
+    if(sonarNum==4){
+    duration4 = pulseIn(echoPin4, HIGH);
+    distance4 = duration4*0.034/2;
+    distance4 = map(distance4, 2, 74, 2, 100);
+    Serial.print("Distance 4: ");
+    Serial.println(distance4);
+    }
+  }
+  //END SONAR FUNCTIONS
