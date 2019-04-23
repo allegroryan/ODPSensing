@@ -35,9 +35,25 @@
 
    
 boolean phase1 = true;
-
+//Sonar Values Start:
+int trigPin=10;
+int echoPin1=2;
+int echoPin2=3;
+int echoPin3=4;
+int echoPin4=5;
+long duration1;
+long duration2;
+long duration3;
+long duration4;
+int distance1;
+int distance2;
+int distance3;
+int distance4;
+//Sonar Values End
 
 void setup() {
+  initialize(); //Sets up motors
+  
   Enes100.begin("ODP", BLACK_BOX, 5, 9, 8);
   Serial.begin(9600);
   Enes100.println("-=xxxXXX[Operation Dark Phoenix]XXXxx=- IN DIS BITS:");
@@ -48,6 +64,15 @@ void setup() {
   Enes100.println("FaceDir Command:");
   faceDir(0);
   */
+  Enes100.println("Clockwise");
+  clockwise(255);
+  delay(10000);
+  Enes100.println("CounterClockwise");
+  counterClockwise(255);
+  delay(10000);
+  Enes100.println("Forward");
+  driveForward(255);
+  delay(10000);
   phaseOne();
   phaseTwo();
   
@@ -111,7 +136,20 @@ void phaseTwo(){
 */
 
 
+void initialize(){
+  //Motors Start:
+  pinMode(12, OUTPUT); 
+  pinMode(13, OUTPUT); 
+  //Motors End
 
+  //Sonar Start:
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin1, INPUT);
+  pinMode(echoPin2, INPUT);
+  pinMode(echoPin3, INPUT);
+  pinMode(echoPin4, INPUT);
+  //Sonar End
+}
 void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){ //maybe add boolean for gradual speed
   int debugTicker = 0;
   double debug1 = 0;
