@@ -54,8 +54,7 @@ int distance4;
 void setup() {
   initialize(); //Sets up motors
   
-  Enes100.begin("ODP", BLACK_BOX, 5, 9, 8);
-  Serial.begin(9600);
+  Enes100.begin("ODP", BLACK_BOX, 5, 1, 0);
   Enes100.println("-=xxxXXX[Operation Dark Phoenix]XXXxx=- IN DIS BITS:");
   
   /*
@@ -64,15 +63,7 @@ void setup() {
   Enes100.println("FaceDir Command:");
   faceDir(0);
   */
-  Enes100.println("Clockwise");
-  clockwise(255);
-  delay(10000);
-  Enes100.println("CounterClockwise");
-  counterClockwise(255);
-  delay(10000);
-  Enes100.println("Forward");
-  driveForward(255);
-  delay(10000);
+  
   phaseOne();
   phaseTwo();
   
@@ -193,6 +184,11 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
   Enes100.println(angleChange);
   Enes100.println(angleChange);
   faceDir(Enes100.location.theta + angleChange);
+  delay(300);
+  faceDir(Enes100.location.theta + angleChange);
+  delay(300);
+  faceDir(Enes100.location.theta + angleChange);
+  delay(300);
   while(distanceTraveled < distance){
     if(sensing == true){
       updateNavigation();
@@ -560,6 +556,15 @@ void clockwise(int wheelSpeed){
   //Motor B foreword @ full speed
   digitalWrite(13, LOW);  //Establishes backward direction of Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
+  delay(100);
+  //Brake
+  digitalWrite(12, LOW); //Establishes forward direction of Channel A
+  analogWrite(3, 0);   //Spins the motor on Channel A at full speed
+  //Motor B foreword @ full speed
+  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
+  analogWrite(11, 0);    //Spins the motor on Channel B at full speed
+  delay(200);
+  
 }
 void counterClockwise(int wheelSpeed){
   int goWheelSpeed = 255;
@@ -570,16 +575,32 @@ void counterClockwise(int wheelSpeed){
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
+  delay(100);
+  //Brake
+  digitalWrite(12, LOW); //Establishes forward direction of Channel A
+  analogWrite(3, 0);   //Spins the motor on Channel A at full speed
+  //Motor B foreword @ full speed
+  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
+  analogWrite(11, 0);    //Spins the motor on Channel B at full speed
+  delay(200);
 }
 void driveForward(int wheelSpeed){
   int goWheelSpeed = 255;
   //Forwards
   //Motor A forword @ full speed
-  digitalWrite(12, HIGH); //Establishes forward direction of Channel A
+  digitalWrite(12, LOW); //Establishes forward direction of Channel A
   analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
+  delay(100);
+  //Brake
+  digitalWrite(12, LOW); //Establishes forward direction of Channel A
+  analogWrite(3, 0);   //Spins the motor on Channel A at full speed
+  //Motor B foreword @ full speed
+  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
+  analogWrite(11, 0);    //Spins the motor on Channel B at full speed
+  delay(200);
 }
 
 
