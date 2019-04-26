@@ -54,7 +54,7 @@ int distance4;
 void setup() {
   initialize(); //Sets up motors
   
-  Enes100.begin("ODP", BLACK_BOX, 5, 1, 0);
+  Enes100.begin("ODP", BLACK_BOX, 13, 1, 0);
   Enes100.println("-=xxxXXX[Operation Dark Phoenix]XXXxx=- IN DIS BITS:");
   
   /*
@@ -64,8 +64,10 @@ void setup() {
   faceDir(0);
   */
   
-  phaseOne();
-  phaseTwo();
+  faceDir(-PI/2);
+  
+  //phaseOne();
+  //phaseTwo();
   
 }
 
@@ -325,7 +327,7 @@ void faceDir(float dir){
   }
   else if(rotateRad < 0){ //CLOCKWISE ROTATION
     //rotate clockwise
-    while(rotateProgress > rotateGoal && (rotateProgress - rotateGoal <= 0.1 && rotateProgress - rotateGoal >= -0.1){
+    while(floatDiff(rotateProgress,rotateGoal) > 0.1){
       updateNavigation();
       if(rotateGoal < -PI){
         if(Enes100.location.theta <= 0){
@@ -345,7 +347,7 @@ void faceDir(float dir){
       Enes100.print("Percent: "); //Artificial percent for speed
       percentDone = (floatDiff(rotateProgress, rotateStart) / rotateDiff);
       Enes100.println(percentDone);
-      if(percentDone >= 0.99){
+      if(percentDone >= 0.95 && percentDone <= 1.05){
         break;
       }
       //ROTATE DIFF
@@ -362,9 +364,6 @@ void faceDir(float dir){
       if(percentDone <= .8){ //Motor Speeds
         clockwise(255);
       }
-      else if(percentDone >= 1.2){
-        counterClockwise(255);
-      }
       else if(percentDone > 0.8 && percentDone < 1.2){
          if(percentDone < 1){
           clockwise(120);
@@ -373,9 +372,14 @@ void faceDir(float dir){
           counterClockwise(120);
          }
       }
+      else if(percentDone >= 1.2){
+        counterClockwise(255);
+      }
     }
+    driveBreak();
     Enes100.print("STOP! - Rotating");
     clockwise(0);
+    delay(1000);
   }
   else{
     Enes100.print("_____NOT ROTATING!_____");
@@ -630,7 +634,7 @@ int sonarReadDistanceSensor(int sonarNum){
   }
 }
 void updateNavigation(){
-  Enes100.updateLocation()
+  Enes100.updateLocation();
 }
 void clearTrig(){
   //Clears the trigPin
