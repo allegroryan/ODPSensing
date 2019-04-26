@@ -64,10 +64,9 @@ void setup() {
   faceDir(0);
   */
   
-  faceDir(-PI/2);
   
-  //phaseOne();
-  //phaseTwo();
+  phaseOne();
+  phaseTwo();
   
 }
 
@@ -82,10 +81,10 @@ void loop() {
 void phaseOne(){
   Enes100.println("-=PHASE 1=-"); 
   if(Enes100.location.y > 1){
-    driveDestination(false, 255, 0.35, 1);
+    driveDestination(false, 255, 0.15, 1);
   }
   else if(Enes100.location.y < 1){
-    driveDestination(false, 255, 0.35, 1);
+    driveDestination(false, 255, 0.15, 1);
   }
   faceDir(0);
   phase1 = false;
@@ -133,6 +132,8 @@ void initialize(){
   //Motors Start:
   pinMode(12, OUTPUT); 
   pinMode(13, OUTPUT); 
+  pinMode(9, OUTPUT); //Initiates Brake Channel A pin
+  pinMode(8, OUTPUT); //Initiates Brake Channel B pin
   //Motors End
 
   //Sonar Start:
@@ -186,11 +187,6 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
   Enes100.println(angleChange);
   Enes100.println(angleChange);
   faceDir(Enes100.location.theta + angleChange);
-  delay(300);
-  faceDir(Enes100.location.theta + angleChange);
-  delay(300);
-  faceDir(Enes100.location.theta + angleChange);
-  delay(300);
   while(distanceTraveled < distance){
     if(sensing == true){
       updateNavigation();
@@ -240,6 +236,7 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
   Enes100.print(distance);
   Enes100.print("/");
   Enes100.println(distanceTraveled);
+  driveBreak();
   Enes100.println("STOP! - Driving");
 }
 
@@ -278,7 +275,7 @@ void faceDir(float dir){
   }
   else if(rotateRad > 0){
     //rotat counterClockwise
-    while(rotateProgress < rotateGoal){
+    while(floatDiff(rotateProgress,rotateGoal) > 0.1){
       updateNavigation();
       if(rotateGoal > PI){
         if(Enes100.location.theta >= 0){
@@ -298,7 +295,7 @@ void faceDir(float dir){
       Enes100.print("Percent: "); //Artificial percent for speed
       percentDone = (floatDiff(rotateProgress, rotateStart) / rotateDiff);
       Enes100.println(percentDone);
-      if(percentDone >= 0.99){
+      if(percentDone >= 0.95 && percentDone <= 1.05){
         break;
       }
       //ROTATE DIFF
@@ -311,19 +308,25 @@ void faceDir(float dir){
       else if(rotateDiff <= 0.1 && percentDone < 0.8){
         percentDone = .9;
       }
-      //PERCEBT DONES
+      //PERCENT DONES
       if(percentDone <= .8){ //Motor Speeds
-        counterClockwise(100); 
+        counterClockwise(255);
       }
-      else if(percentDone <= .95){
-        counterClockwise(50);
+      else if(percentDone > 0.8 && percentDone < 1.2){
+         if(percentDone < 1){
+          counterClockwise(120);
+         }
+         else if(percentDone > 1){
+          clockwise(120);
+         }
       }
-      else{
-        counterClockwise(40);
+      else if(percentDone >= 1.2){
+        clockwise(255);
       }
     }
-    Enes100.println("STOP! - turning");
-    counterClockwise(0);
+    driveBreak();
+    Enes100.print("STOP! - Rotating");
+    delay(1000);
   }
   else if(rotateRad < 0){ //CLOCKWISE ROTATION
     //rotate clockwise
@@ -378,7 +381,6 @@ void faceDir(float dir){
     }
     driveBreak();
     Enes100.print("STOP! - Rotating");
-    clockwise(0);
     delay(1000);
   }
   else{
@@ -561,9 +563,11 @@ void clockwise(int wheelSpeed){
   //Turning RIGHT
   //Motor A forword @ full speed
   digitalWrite(12, LOW); //Establishes forward direction of Channel A
+  digitalWrite(9, LOW);   //Disengage the Brake for Channel A
   analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, LOW);  //Establishes backward direction of Channel B
+  digitalWrite(8, LOW);   //Disengage the Brake for Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
   
 }
@@ -572,9 +576,11 @@ void counterClockwise(int wheelSpeed){
   //Turning LEFT
   //Motor A forword @ full speed
   digitalWrite(12, HIGH); //Establishes forward direction of Channel A
+  digitalWrite(9, LOW);   //Disengage the Brake for Channel A
   analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
+  digitalWrite(8, LOW);   //Disengage the Brake for Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
 void driveForward(int wheelSpeed){
@@ -582,18 +588,17 @@ void driveForward(int wheelSpeed){
   //Forwards
   //Motor A forword @ full speed
   digitalWrite(12, LOW); //Establishes forward direction of Channel A
+  digitalWrite(9, LOW);   //Disengage the Brake for Channel A
   analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
+  digitalWrite(8, LOW);   //Disengage the Brake for Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
 
 void driveBreak(){
-  digitalWrite(12, LOW); //Establishes forward direction of Channel A
-  analogWrite(3, 0);   //Spins the motor on Channel A at full speed
-  //Motor B foreword @ full speed
-  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
-  analogWrite(11, 0);    //Spins the motor on Channel B at full speed
+  digitalWrite(9, HIGH); //Eengage the Brake for Channel A
+  digitalWrite(8, HIGH); //Eengage the Brake for Channel B
 }
 
 
