@@ -92,6 +92,7 @@ void phaseOne(){
 
 void phaseTwo(){
   Enes100.println("-=PHASE 2=-"); 
+  //driveDestination(true, 255, 1.2, 1);
   driveDestination(true, 255, 3, 1);
 }
 
@@ -116,7 +117,7 @@ void dodgeObstacle(){
       drivePast = true;
     }
   }
-  ("DODGE OBSTACLE: 3 DRIVEN PAST, NEXT!-------------------");
+  Enes100.println("DODGE OBSTACLE: 3 DRIVEN PAST, NEXT!-------------------");
   updateNavigation();
   driveDestination(false, 200, (Enes100.location.x + 0.2), (Enes100.location.y));
   updateNavigation();
@@ -194,7 +195,7 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
       Enes100.println(sonarReadDistanceSensor(0));
       Enes100.print("Sensor[2]: ");
       Enes100.println(sonarReadDistanceSensor(2));
-      if(sonarReadDistanceSensor(0) <= 40 || sonarReadDistanceSensor(2) <= 40){
+      if(sonarReadDistanceSensor(0) <= 50 || sonarReadDistanceSensor(2) <= 50){
         if(debugTicker % 60 == 0){
           debug1 = sonarReadDistanceSensor(0);
         }
