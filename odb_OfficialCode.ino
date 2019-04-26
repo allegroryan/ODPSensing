@@ -325,7 +325,7 @@ void faceDir(float dir){
   }
   else if(rotateRad < 0){ //CLOCKWISE ROTATION
     //rotate clockwise
-    while(rotateProgress > rotateGoal){
+    while(rotateProgress > rotateGoal && (rotateProgress - rotateGoal <= 0.1 && rotateProgress - rotateGoal >= -0.1){
       updateNavigation();
       if(rotateGoal < -PI){
         if(Enes100.location.theta <= 0){
@@ -358,15 +358,20 @@ void faceDir(float dir){
       else if(rotateDiff <= 0.1 && percentDone < 0.8){
         percentDone = .9;
       }
-      //PERCEBT DONES
+      //PERCENT DONES
       if(percentDone <= .8){ //Motor Speeds
-        clockwise(100); 
+        clockwise(255);
       }
-      else if(percentDone <= .95){
-        clockwise(50);
+      else if(percentDone >= 1.2){
+        counterClockwise(255);
       }
-      else{
-        clockwise(5);
+      else if(percentDone > 0.8 && percentDone < 1.2){
+         if(percentDone < 1){
+          clockwise(120);
+         }
+         else if(percentDone > 1){
+          counterClockwise(120);
+         }
       }
     }
     Enes100.print("STOP! - Rotating");
@@ -556,14 +561,6 @@ void clockwise(int wheelSpeed){
   //Motor B foreword @ full speed
   digitalWrite(13, LOW);  //Establishes backward direction of Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
-  delay(100);
-  //Brake
-  digitalWrite(12, LOW); //Establishes forward direction of Channel A
-  analogWrite(3, 0);   //Spins the motor on Channel A at full speed
-  //Motor B foreword @ full speed
-  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
-  analogWrite(11, 0);    //Spins the motor on Channel B at full speed
-  delay(200);
   
 }
 void counterClockwise(int wheelSpeed){
@@ -575,14 +572,6 @@ void counterClockwise(int wheelSpeed){
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
-  delay(100);
-  //Brake
-  digitalWrite(12, LOW); //Establishes forward direction of Channel A
-  analogWrite(3, 0);   //Spins the motor on Channel A at full speed
-  //Motor B foreword @ full speed
-  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
-  analogWrite(11, 0);    //Spins the motor on Channel B at full speed
-  delay(200);
 }
 void driveForward(int wheelSpeed){
   int goWheelSpeed = 255;
@@ -593,14 +582,14 @@ void driveForward(int wheelSpeed){
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
-  delay(100);
-  //Brake
+}
+
+void driveBreak(){
   digitalWrite(12, LOW); //Establishes forward direction of Channel A
   analogWrite(3, 0);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, LOW);  //Establishes backward direction of Channel B
   analogWrite(11, 0);    //Spins the motor on Channel B at full speed
-  delay(200);
 }
 
 
