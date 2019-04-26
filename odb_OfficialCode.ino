@@ -630,10 +630,7 @@ int sonarReadDistanceSensor(int sonarNum){
   }
 }
 void updateNavigation(){
-  sonarDistance(1);
-  sonarDistance(2);
-  sonarDistance(3);
-  sonarDistance(4);
+  Enes100.updateLocation()
 }
 void clearTrig(){
   //Clears the trigPin
