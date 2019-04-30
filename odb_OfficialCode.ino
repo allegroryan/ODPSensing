@@ -54,7 +54,7 @@ int distance4;
 void setup() {
   initialize(); //Sets up motors
   
-  Enes100.begin("ODP", BLACK_BOX, 13, 1, 0);
+  Enes100.begin("ODP", BLACK_BOX, 8, 1, 0);
   Enes100.println("-=xxxXXX[Operation Dark Phoenix]XXXxx=- IN DIS BITS:");
   
   /*
@@ -188,7 +188,7 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
   Enes100.println(angleChange);
   Enes100.println(angleChange);
   faceDir(Enes100.location.theta + angleChange);
-  while(distance - distanceTraveled > 0.02 && distance - distanceTraveled < 0.02){ // Makes travel tolerance 0.2, might need to be changed
+  while(distanceTraveled < distance){
     if(sensing == true){
       updateNavigation();
       Enes100.print("Sensor[0]: ");
@@ -206,7 +206,7 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
           Enes100.println("!!!STUCK GLITCH!!!");
           dodgeObstacle();
         }
-        driveForward(osvSpeed/1.4);
+        osvSpeed = osvSpeed/1.5;
         if(sonarReadDistanceSensor(0) <= 24.5 || sonarReadDistanceSensor(2) <= 24.5){
           Enes100.println("-= DODGING OBSTACLE! =-");
           dodgeObstacle();
@@ -227,13 +227,10 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
       driveForward(osvSpeed);
     }
     else if(travelPercent <= .95){
-      driveForward(osvSpeed / 1.4);
-    }
-    else if(travelPercent > 1){
-      driveBackward(osvSpeed / 1.4);
+      driveForward(osvSpeed / 2);
     }
     else{
-      driveForward(osvSpeed / 1.4);
+      driveForward(osvSpeed / 2.5);
     }
   }
   driveForward(0);
@@ -279,7 +276,7 @@ void faceDir(float dir){
   }
   else if(rotateRad > 0){
     //rotat counterClockwise
-    while(floatDiff(rotateProgress,rotateGoal) > 0.05){ // Switched from 0.1 to 0.5
+    while(floatDiff(rotateProgress,rotateGoal) > 0.1){
       updateNavigation();
       if(rotateGoal > PI){
         if(Enes100.location.theta >= 0){
@@ -318,10 +315,10 @@ void faceDir(float dir){
       }
       else if(percentDone > 0.8 && percentDone < 1.2){
          if(percentDone < 1){
-          counterClockwise(180);
+          counterClockwise(250);
          }
          else if(percentDone > 1){
-          clockwise(180);
+          clockwise(250);
          }
       }
       else if(percentDone >= 1.2){
@@ -334,7 +331,7 @@ void faceDir(float dir){
   }
   else if(rotateRad < 0){ //CLOCKWISE ROTATION
     //rotate clockwise
-    while(floatDiff(rotateProgress,rotateGoal) > 0.05){ //switched from 0.1 to 0.05
+    while(floatDiff(rotateProgress,rotateGoal) > 0.1){
       updateNavigation();
       if(rotateGoal < -PI){
         if(Enes100.location.theta <= 0){
@@ -373,10 +370,10 @@ void faceDir(float dir){
       }
       else if(percentDone > 0.8 && percentDone < 1.2){
          if(percentDone < 1){
-          clockwise(180);
+          clockwise(250);
          }
          else if(percentDone > 1){
-          counterClockwise(180);
+          counterClockwise(250);
          }
       }
       else if(percentDone >= 1.2){
@@ -563,7 +560,7 @@ float rotateRadians(float dir){
 }
 
 void clockwise(int wheelSpeed){
-  int goWheelSpeed = wheelSpeed;
+  int goWheelSpeed = 255;
   //Turning RIGHT
   //Motor A forword @ full speed
   digitalWrite(12, LOW); //Establishes forward direction of Channel A
@@ -576,7 +573,7 @@ void clockwise(int wheelSpeed){
   
 }
 void counterClockwise(int wheelSpeed){
-  int goWheelSpeed = wheelSpeed;
+  int goWheelSpeed = 255;
   //Turning LEFT
   //Motor A forword @ full speed
   digitalWrite(12, HIGH); //Establishes forward direction of Channel A
@@ -588,7 +585,7 @@ void counterClockwise(int wheelSpeed){
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
 void driveForward(int wheelSpeed){
-  int goWheelSpeed = wheelSpeed;
+  int goWheelSpeed = 255;
   //Forwards
   //Motor A forword @ full speed
   digitalWrite(12, LOW); //Establishes forward direction of Channel A
@@ -599,19 +596,6 @@ void driveForward(int wheelSpeed){
   digitalWrite(8, LOW);   //Disengage the Brake for Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
-void driveBackward(int wheelSpeed){
-  int goWheelSpeed = wheelSpeed;
-  //Backwards
-  //Motor A forword @ full speed
-  digitalWrite(12, HIGH); //Establishes forward direction of Channel A
-  digitalWrite(9, LOW);   //Disengage the Brake for Channel A
-  analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
-  //Motor B foreword @ full speed
-  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
-  digitalWrite(8, LOW);   //Disengage the Brake for Channel B
-  analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
-}
-
 
 void driveBreak(){
   digitalWrite(9, HIGH); //Eengage the Brake for Channel A
