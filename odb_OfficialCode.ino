@@ -195,7 +195,8 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
       Enes100.println(sonarReadDistanceSensor(0));
       Enes100.print("Sensor[2]: ");
       Enes100.println(sonarReadDistanceSensor(2));
-      if(sonarReadDistanceSensor(0) <= 50 || sonarReadDistanceSensor(2) <= 50){
+      if(sonarReadDistanceSensor(0) <= 40 || sonarReadDistanceSensor(2) <= 40){
+       dodgeObstacle();
         if(debugTicker % 60 == 0){
           debug1 = sonarReadDistanceSensor(0);
         }
@@ -610,7 +611,7 @@ void driveBreak(){
 //SONAR FUNCTIONS
 int sonarReadDistanceSensor(int sonarNum){
   updateNavigation();
-  if(sonarNum == 10){ // left
+  if(sonarNum == 10){ // back
     clearTrig();
     duration1 = pulseIn(echoPin1, HIGH);
     distance1 = duration1*0.034/2;
@@ -624,14 +625,14 @@ int sonarReadDistanceSensor(int sonarNum){
     distance2 = map(distance2, 2, 74, 2, 100);
     return distance2;
   }
-  if(sonarNum == 2){ // front right
+  if(sonarNum == 4){ // front right
     clearTrig();
     duration3 = pulseIn(echoPin3, HIGH);
     distance3 = duration3*0.034/2;
     distance3 = map(distance3, 2, 74, 2, 100);
     return distance3;
   }
-  if(sonarNum == 4){ // right
+  if(sonarNum == 2){ // right
     clearTrig();
     duration4 = pulseIn(echoPin4, HIGH);
     distance4 = duration4*0.034/2;
