@@ -195,8 +195,15 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
       Enes100.println(sonarReadDistanceSensor(0));
       Enes100.print("Sensor[2]: ");
       Enes100.println(sonarReadDistanceSensor(2));
-      if(sonarReadDistanceSensor(0) <= 40 || sonarReadDistanceSensor(2) <= 40){
-       dodgeObstacle();
+      if((sonarReadDistanceSensor(0) <= 40 || sonarReadDistanceSensor(2) <= 40) && (sonarReadDistanceSensor(0) != 0 || sonarReadDistanceSensor(2) != 0)){
+        while(sonarReadDistanceSensor(0) <= 35 && sonarReadDistanceSensor(0) !=0){
+          driveBackward(255);
+        }
+        while(sonarReadDistanceSensor(2) <= 35 && sonarReadDistanceSensor(0) !=0){
+          driveBackward(255);
+        }
+        driveBreak();
+        dodgeObstacle();
         if(debugTicker % 60 == 0){
           debug1 = sonarReadDistanceSensor(0);
         }
@@ -594,6 +601,18 @@ void driveForward(int wheelSpeed){
   analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
   //Motor B foreword @ full speed
   digitalWrite(13, HIGH);  //Establishes backward direction of Channel B
+  digitalWrite(8, LOW);   //Disengage the Brake for Channel B
+  analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
+}
+void driveBackward(int wheelSpeed){
+  int goWheelSpeed = 255;
+  //Forwards
+  //Motor A forword @ full speed
+  digitalWrite(12, HIGH); //Establishes forward direction of Channel A
+  digitalWrite(9, LOW);   //Disengage the Brake for Channel A
+  analogWrite(3, goWheelSpeed);   //Spins the motor on Channel A at full speed
+  //Motor B foreword @ full speed
+  digitalWrite(13, LOW);  //Establishes backward direction of Channel B
   digitalWrite(8, LOW);   //Disengage the Brake for Channel B
   analogWrite(11, goWheelSpeed);    //Spins the motor on Channel B at full speed
 }
