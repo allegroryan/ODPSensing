@@ -76,6 +76,23 @@ void loop() {
   
 }
 
+void testRun(){
+  Enes100.updateLocation();
+  Enes100.print("OSV is at (");
+  Enes100.print(Enes100.location.x);
+  Enes100.print(", ");
+  Enes100.print(Enes100.location.y);
+  Enes100.print(", ");
+  Enes100.print(Enes100.location.theta);
+  Enes100.println(")");
+  Enes100.print("Left Front Sonar: ");
+  Enes100.println(sonarReadDistanceSensor(0));
+  Enes100.print("Front Right Sonar: ");
+  Enes100.println(sonarReadDistanceSensor(2));
+  Enes100.print("Side Right Sonar: ");
+  Enes100.println(sonarReadDistanceSensor(4));
+  delay(300);
+}
 
 //Phase 1 - Center Self
 void phaseOne(){
