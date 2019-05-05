@@ -67,7 +67,7 @@ void setup() {
   
   phaseOne();
   phaseTwo();
-  
+  phaseThree();
 }
 
 
@@ -113,6 +113,43 @@ void phaseTwo(){
   driveDestination(true, 255, 3, 1);
 }
 
+void phaseThree() { // find black box with sonars, orient to face it, and drive towards it
+  Enes100.println("-=PHASE 3=-"); 
+  float d[360];
+  float pi = 3.1415926;
+  int r = 0;
+  int s = 0;
+  float ang;
+  Enes100.updateLocation();
+  faceDir(Enes100.location.theta + (pi/2));
+  for (int i=0;i<359;i++) {
+    faceDir(Enes100.location.theta - (i*pi/360));
+    d[i] = (sonarReadDistanceSensor(10));
+    if (d[i] <= 2) d[i] = d[i-1];
+    if (d[i] <= (d[i-1]-10)) {
+      r = i;
+    }
+    if (d[i] >= (d[i-1]+10)) {
+      s = i;
+    }
+    if (r!=0 && s!=0) {
+      ang = s - (s-r)/2;
+    }
+  }
+  faceDir(Enes100.location.theta + (pi/2) - (ang*pi/180));
+
+  Enes100.updateLocation();
+  float x,y;
+  x = Enes100.location.x + sonarReadDistanceSensor(10)*cos(ang) + 4;
+  y = Enes100.location.y + sonarReadDistanceSensor(10)*sin(ang) + 4;
+  Serial.print("(x,y): (");
+  Serial.print(x);
+  Serial.print(",");
+  Serial.print(y);
+  Serial.println(")");
+
+  driveDestination(false,255,x,y);
+}
 
 void dodgeObstacle(){
   updateNavigation();
