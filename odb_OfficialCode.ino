@@ -35,6 +35,7 @@
 
    
 boolean phase1 = true;
+boolean dodgeObstacle1 = false;
 //Sonar Values Start:
 int trigPin=10;
 int echoPin1=2; //Left
@@ -54,7 +55,7 @@ int distance4;
 void setup() {
   initialize(); //Sets up motors
   
-  Enes100.begin("ODP", BLACK_BOX, 9, 1, 0);
+  Enes100.begin("ODP", BLACK_BOX, 5, 1, 0);
   Enes100.println("-=xxxXXX[Operation Dark Phoenix]XXXxx=- IN DIS BITS:");
   
   /*
@@ -98,23 +99,57 @@ void testRun(){
 void phaseOne(){
   Enes100.println("-=PHASE 1=-"); 
   if(Enes100.location.y > 1){
-    driveDestination(false, 255, 0.15, 1);
+    driveDestination(false, 255, 0.2, 1);
   }
   else if(Enes100.location.y < 1){
     driveDestination(false, 255, 0.2, 1);
   }
-  //faceDir(0);
+  else{
+    driveDestination(false, 255, 0.2, 1);
+  }
+  faceDir(0);
   phase1 = false;
 }
 
 void phaseTwo(){
   Enes100.println("-=PHASE 2=-"); 
-  //driveDestination(true, 255, 1.2, 1);
-  driveDestination(true, 255, 3, 1);
+  /*driveDestination(false, 255, 0.9, 1);
+  if(dodgeObstacle1){
+    Enes100.println("Obstacle Dodged!");
+    delay(1000);
+    faceDir(0);
+    driveDestination(false, 255, 3, 1);
+  }
+  else{
+    Enes100.println("Stop Before Obstacle 1");
+    delay(1000);
+    faceDir(0);
+    driveDestination(true, 255, 1.55, 1);
+    if(dodgeObstacle1){
+      Enes100.println("Obstacle Dodged!");
+      delay(1000);
+      faceDir(0);
+      driveDestination(false, 255, 3, 1);
+    }
+    else{
+      Enes100.println("Stop Before Obstacle 2");
+      delay(1000);
+      faceDir(0);
+      driveDestination(true, 255, 2.1, 1);
+      Enes100.println("Stop Before Obstacle 3");
+      delay(1000);
+      faceDir(0);
+      driveDestination(true, 255, 3, 1);
+    }
+  }*/
+  driveDestination(true, 255, 3, .9);
 }
 
 
 void dodgeObstacle(){
+  if(!dodgeObstacle1){
+    dodgeObstacle1 = true;
+  }
   updateNavigation();
   boolean drivePast = false;
   float sideDistance = sonarReadDistanceSensor(4);
@@ -122,24 +157,33 @@ void dodgeObstacle(){
   Enes100.println("DODGE OBSTACLE: 1A");
   Enes100.println("DODGE OBSTACLE: DRIVE TEST -------");
   updateNavigation();
-  driveDestination(false, 255, (Enes100.location.x + 0.25), (Enes100.location.y + 0.6));
+  if(Enes100.location.y >= 0.9){
+    Enes100.print("Y: ");
+    Enes100.print(Enes100.location.y);
+    Enes100.print(" ");
+    Enes100.println("UPPER HEMISPHERE DODGE");
+    driveDestination(false, 255, (Enes100.location.x + 0.85), (Enes100.location.y + 0.7));
+  }
+  else{
+    Enes100.print("Y: ");
+    Enes100.print(Enes100.location.y);
+    Enes100.print(" ");
+    Enes100.println("LOWER HEMISPHERE DODGE");
+    driveDestination(false, 255, (Enes100.location.x + 0.85), (Enes100.location.y + 0.8));
+  }
+  delay(3000);
   updateNavigation();
   Enes100.println("DODGE OBSTACLE: 2-------------------");
   faceDir(0);
-  //driveDestination(false, 100, Enes100.location.x+ 0.2, Enes100.location.y);
   Enes100.println("DODGE OBSTACLE: 2 - Face Right-------------------");
   updateNavigation();
-  driveDestination(false, 255, Enes100.location.x + 0.2, Enes100.location.y);
-  Enes100.println("DODGE OBSTACLE: 3 DRIVEN PAST, NEXT!-------------------");
-  updateNavigation();
-  driveDestination(false, 255, (Enes100.location.x + 0.2), (Enes100.location.y));
+  //driveDestination(false, 255, Enes100.location.x + 0.25, Enes100.location.y);
   updateNavigation();
   Enes100.println("DODGE OBSTACLE: 3-------------------");
   driveDestination(false, 255, (Enes100.location.x + 0.35), startPos[1]);
   updateNavigation();
   faceDir(0);
 }
-
 
 
 void initialize(){
@@ -206,25 +250,40 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
       updateNavigation();
       Enes100.print("Sensor[0]: ");
       int prev1 = sonarReadDistanceSensor(0);
-      int prev2 = sonarReadDistanceSensor(2);
+      int prev2 = sonarReadDistanceSensor(4);
       Enes100.println(sonarReadDistanceSensor(0));
-      Enes100.print("Sensor[2]: ");
-      Enes100.println(sonarReadDistanceSensor(2));
-      if(((sonarReadDistanceSensor(0) <= 40 || sonarReadDistanceSensor(2) <= 40) && (sonarReadDistanceSensor(0) != 0 || sonarReadDistanceSensor(2) != 0)) &&
-      ((prev1 <= 40 || prev2 <= 40) && (prev1 != 0 || prev2 != 0))){
+      Enes100.print("Sensor[4]: ");
+      Enes100.println(sonarReadDistanceSensor(4));
+      while(sonarReadDistanceSensor(0) <= 35 && sonarReadDistanceSensor(0) !=0 && Enes100.location.x >= 0.9){
+          Enes100.println("Driving Back");
+          driveBackward(255);
+        }
+        while(sonarReadDistanceSensor(4) <= 35 && sonarReadDistanceSensor(0) !=0){
+          Enes100.println("Driving Back");
+          driveBackward(255);
+        }
+      if(((sonarReadDistanceSensor(0) <= 45 || sonarReadDistanceSensor(4) <= 45) && (sonarReadDistanceSensor(0) != 0 || sonarReadDistanceSensor(4) != 0)) &&
+      ((prev1 <= 45 || prev2 <= 45) && (prev1 != 0 || prev2 != 0))){//&& travelPercent <= 0.33){
         Enes100.println("-------========Collision!!!!==========--------");
         Enes100.print("Sensor[0]: ");
         Enes100.println(sonarReadDistanceSensor(0));
-        Enes100.print("Sensor[2]: ");
-        Enes100.println(sonarReadDistanceSensor(2));
-        while(sonarReadDistanceSensor(0) <= 35 && sonarReadDistanceSensor(0) !=0){
+        Enes100.print("Sensor[4]: ");
+        Enes100.println(sonarReadDistanceSensor(4));
+        while(sonarReadDistanceSensor(0) <= 35 && sonarReadDistanceSensor(0) !=0 && Enes100.location.x >= 0.9){
+          Enes100.println("Driving Back");
           driveBackward(255);
         }
-        while(sonarReadDistanceSensor(2) <= 35 && sonarReadDistanceSensor(0) !=0){
+        while(sonarReadDistanceSensor(4) <= 35 && sonarReadDistanceSensor(0) !=0 && Enes100.location.x >= 0.9){
+          Enes100.println("Driving Back");
           driveBackward(255);
         }
         driveBreak();
-        dodgeObstacle();
+        if(Enes100.location.x >= 0.9){
+          dodgeObstacle();
+        }
+        if(dodgeObstacle1){
+          break;
+        }
         if(debugTicker % 60 == 0){
           debug1 = sonarReadDistanceSensor(0);
         }
@@ -236,7 +295,7 @@ void driveDestination(boolean sensing, float defaultOsvSpeed, float x, float y){
           dodgeObstacle();
         }
         osvSpeed = osvSpeed/1.5;
-        if(sonarReadDistanceSensor(0) <= 24.5 || sonarReadDistanceSensor(2) <= 24.5){
+        if(sonarReadDistanceSensor(0) <= 24.5 || sonarReadDistanceSensor(4) <= 24.5){
           Enes100.println("-= DODGING OBSTACLE! =-");
           dodgeObstacle();
         }
