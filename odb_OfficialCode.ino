@@ -145,6 +145,57 @@ void phaseTwo(){
   driveDestination(true, 255, 3, .9);
 }
 
+void phaseThree() { // find black box with sonars, orient to face it, and drive towards it
+  Enes100.println("-=PHASE 3=-"); 
+  float d[30];
+  float pi = 3.1415926;
+  int r = 0;
+  int s = 0;
+  float ang;
+  Enes100.updateLocation();
+  faceDir(pi/2);
+  while (s==0){
+    int i = 0;
+      faceDir(pi/2 + ((i+1)*0.10588));
+      d[i] = (sonarReadDistanceSensor(10));
+      Enes100.println("");
+      Enes100.println("Sonar reading: ");
+      Enes100.println(d[i]);
+      Enes100.println("");
+      if (d[i] <= 2) d[i] = d[i-1];
+      /*if (d[i] <= (d[i-1]-8)) {
+        r = pi/2 + ((i+1)*0.10588);
+        Enes100.println("Found r");
+      }*/
+      if (d[i+1] >= (d[i]+8)) {
+        s = pi/2 + ((i+1)*0.10588);
+        Enes100.println("Found s");
+        Enes100.print("STOP!-Rotating");
+        delay(3000);
+      }
+      if (s!=0) {
+        ang = s;
+        Enes100.println("Found ang for Black Box");
+        driveBreak();
+      }
+      delay(500);
+    i++;
+    if (i >=30) i = 0;
+  }
+  faceDir(ang);
+
+  Enes100.updateLocation();
+  float x,y;
+  x = Enes100.location.x + sonarReadDistanceSensor(10)*cos(ang) + 4;
+  y = Enes100.location.y + sonarReadDistanceSensor(10)*sin(ang) + 4;
+  Enes100.print("(x,y): (");
+  Enes100.print(x);
+  Enes100.print(",");
+  Enes100.print(y);
+  Enes100.print(")");
+
+  driveDestination(false,255,x,y);
+}
 
 void dodgeObstacle(){
   if(!dodgeObstacle1){
